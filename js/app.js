@@ -1,9 +1,11 @@
+//----------------------ENEMY CLASS---------------------
+//------------------------------------------------------
 // Enemies our player must avoid
 var Enemy = function(x, y, speed) {
     // Variables applied to each of our instances go here,
 
     // The image/sprite for our enemies
-    this.sprite = 'images/enemy-bug.png';
+    this.sprite = 'images/enemy-bug.PNG';
     // x: X position coordinate of the enemy
     this.x = x;
     // y: Y position coordinate of the enemy
@@ -37,29 +39,21 @@ Enemy.prototype.render = function() {
 
 //Check collision of enemy objects with our player by checking their x and y corodinate positions
 Enemy.prototype.checkCollisions = function() {
-	if (
-        player.y + 125 >= this.y + 90
-        && player.x + 25 <= this.x + 90
-        && player.y + 75 <= this.y + 125
-        && player.x + 75 >= this.x + 10) {
-        console.log('collision');
+		if(checkCollisions(this)){
     	//upon collision update the position and score of the player
     	currentCountDown = createCountDown((player.level + 1) * 10000);
         player.x = 202.5;
         player.y = 400;
         player.score -= (3 * player.level);
         player.lives -= 1;
-        console.log('level => '+ player.level + ' score => '+ player.score);
     }
 };
 
-// Now write your own player class
-// This class requires an update(), render() and
-// a handleInput() method.
-
+//---------------------PLAYER CLASS---------------------
+//------------------------------------------------------
 var Player = function(x,y,speed) {
 	// The image/sprite for our player
-    this.sprite = 'images/char-boy.png';
+    this.sprite = 'images/char-boy.PNG';
 
     // x: X position coordinate of the player
     this.x = x;
@@ -78,8 +72,12 @@ var Player = function(x,y,speed) {
 
     // lives: Number of lives player has
     this.lives = 10;
+
+    // won: Boolean to determine if the player has won the level
+    this.won = false;
 };
 
+// To update the position and parameters of the Player
 Player.prototype.update = function() {
 	// To check if the timer is still on
 	this.checkTime();
@@ -97,11 +95,15 @@ Player.prototype.update = function() {
 	if(this.y >= 400){
 		this.y = 400;
 	}
-	console.log(player.x + "--" + player.y);
+
+	if(this.lives == 0){
+		 setTimeout(function() { window.location.reload(true); }, 0);
+	}
 
 	// To move the game to next level if the player has won
 	if(this.hasWon()){
 		moveToNextLevel(this.level);
+		plusLife = new LifeHeart();
 	}
 };
 
@@ -124,56 +126,89 @@ Player.prototype.handleInput = function(allowedKeys) {
     if (allowedKeys == 'down') {
         this.y += (this.speed - 20);
     }
-    console.log('allowedKeys is: ' + allowedKeys);
 };
 
 // To Check if the Player has reached the water area
 Player.prototype.hasWon = function() {
-	var won = false;
+	this.won = false;
 	if(this.y == 0) {
-		console.log('You Won');
-		won = true;
+		this.won = true;
 		this.x = 202.5;
         this.y = 400;
         this.level += 1;
         this.score += ( 10 * (this.level-1));
-        console.log('level => '+ this.level + ' score => '+ this.score);
 	}
 
-	return won;
+	return this.won;
 };
 
 // To restart the level if time expired
 Player.prototype.checkTime = function() {
-	//console.log(currentCountDown());
 	if(currentCountDown() < 0){
-        console.log('Time over. Restart level.');
         currentCountDown = createCountDown((this.level + 1) * 10000);
         this.x = 202.5;
         this.y = 400;
 	}
 };
 
+// Draw the important data related to the game on Canvas
+Player.prototype.renderStatus = function() {
+    ctx.clearRect(0, 20 , 505 , 25);
+    ctx.font = "18pt impact";
+    // Draw scores on the top left
+    ctx.fillText("Score: " + this.score, 0, 40);
+    // Draw lives on the top right
+    ctx.fillText("Lives: " + this.lives, 404, 40);
+    // Draw Levels in middle during gaming session
+    ctx.fillText("Level: " + this.level, 202, 40);
+    // Draw timer at the bottom of the canvas
+    ctx.fillText("Time Left: " + Math.floor((currentCountDown() % 36e5) / 6e4) + ":" + Math.floor((currentCountDown() % 6e4) / 1000), 0, 580);    
+};
+
+//------------------LIFEHEART CLASS---------------------
+//------------------------------------------------------
+
 var LifeHeart = function () {
 	// To determine X position of the heart
 	this.x = xArr[Math.floor(Math.random() * 5)];
-	console.log(this.x);
 	// To determine Y position of the heart
 	this.y = yArr[Math.floor(Math.random() * 4)];
-	console.log(this.y);
 	// To create a random number based on which the heart will appear
 	this.produceHeart = Math.floor(Math.random() * 10);
-	console.log(this.produceHeart);
+	// To create the modulus
+	this.mod = 7;
 	// The image/sprite for the heart
-    this.sprite = 'images/Heart.png';
+    this.sprite = 'images/heart.PNG';
 };
 
-LifeHeart.prototype.render = function() {
-	if(this.produceHeart % 3 == 0) {
-		player.lives += 1;
-		//ctx.drawImage(Resources.get(this.sprite), this.x, this.y);	
+//To control the number of lives created with increaisng levels
+LifeHeart.prototype.update = function() {
+	this.checkCollisions();
+
+	if(this.level >= 8 && this.level <= 12){
+		this.mod = 3;
+	} else if(this.level <= 17){
+		this.mod = 2;
+	} else if(this.level > 17){
+		this.mod = 1;
 	}
-    
+};
+
+// Method that checks if the player was able to get a heart and adds life
+LifeHeart.prototype.checkCollisions = function () {
+	if(checkCollisions(this)){
+		player.lives +=1;
+		this.x = 550;
+		this.y = 650;
+		this.produceHeart = 1;
+	}
+};
+
+// To Draw the heart on the screen
+LifeHeart.prototype.render = function() {
+	if(this.produceHeart % this.mod == 0) {
+		ctx.drawImage(Resources.get(this.sprite), this.x, this.y);	
+	}
 };
 
 // To move the game to the next level
@@ -197,8 +232,32 @@ var createCountDown = function(timeRemaining) {
     }
 };
 
+// Mehod to check collision of enemy and heart objects. Can be extended and used for other collectibles too.
+var checkCollisions = function (anObject) {
+	var hasCollided = false;
+	if(anObject instanceof Enemy){
+		if (
+	        player.y + 125 >= anObject.y + 90
+	        && player.x + 25 <= anObject.x + 90
+	        && player.y + 75 <= anObject.y + 125
+	        && player.x + 75 >= anObject.x + 10) {
+
+				hasCollided = true;
+		}
+	} else if (anObject instanceof LifeHeart) {
+			if(player.y - 5 >= anObject.y
+			&& player.y - 15 <= anObject.y  
+	        && player.x == anObject.x){
+
+				hasCollided = true;
+		}
+	}
+
+	return hasCollided;
+};
+
 // The player object
-var player = new Player(202.5, 390, 100);
+var player = new Player(202.5, 400, 100);
 // Array to determine X position of objects
 var xArr = [2.5,102.5,202.5,302.5,402.5];
 // Array to determine Y position of objects
