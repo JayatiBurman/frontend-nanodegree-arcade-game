@@ -24,11 +24,31 @@ Enemy.prototype.update = function(dt) {
     if ( this.x >= 505) {
     	this.x = 0;
     }
+
+    //To check collisions between any enemy and the player
+    this.checkCollisions();
+    
 };
 
 // Draw the enemy on the screen, required method for game
 Enemy.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
+
+//Check collision of enemy objects with our player by checking their x and y corodinate positions
+Enemy.prototype.checkCollisions = function() {
+	if (
+        player.y + 125 >= this.y + 90
+        && player.x + 25 <= this.x + 90
+        && player.y + 75 <= this.y + 125
+        && player.x + 75 >= this.x + 10) {
+        console.log('collision');
+    	//upon collision update the position and score of the player
+        player.x = 202.5;
+        player.y = 400;
+        player.score -= (3 * player.level);
+        console.log('level => '+ player.level + ' score => '+ player.score);
+    }
 };
 
 // Now write your own player class
@@ -47,48 +67,83 @@ var Player = function(x,y,speed) {
 
     // speed: Speed with which the player moves
     this.speed = speed;
+
+    // level: Level at which player moves to as the game proceeds
+    this.level = 1;
+
+    // score: Score attained by the player
+    this.score = 0;
 };
 
 Player.prototype.update = function() {
-	if(player.x <= 0){
-		player.x = 0;
+	// To keep the player within the canvas
+	if(this.x <= 0){
+		this.x = 0;
 	}
-	if(player.y <= 0){
-		player.y = 0;
+	if(this.y <= 0){
+		this.y = 0;
 	}
-	if(player.x >= 404){
-		player.x = 404;
+	if(this.x >= 404){
+		this.x = 404;
 	}
-	if(player.y >= 400){
-		player.y = 400;
+	if(this.y >= 400){
+		this.y = 400;
 	}
 	//console.log(player.x + "--" + player.y);
 
-	if(y = 0){
-		ctx.textBaseline = "bottom";
-		ctx.fillText('You Won !', canvas.width / 2, canvas.height - 10);
-		ctx.strokeText('You Won !', canvas.width / 2, canvas.height - 10);
+	// To move the game to next level if the player has won
+	if(this.hasWon()){
+		moveToNextLevel(this.level);
 	}
 };
 
+// Draw the player on the screen, required method for game
 Player.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
+// Interpret the key pressed by the user and move the player accordingly
 Player.prototype.handleInput = function(allowedKeys) {
 	if (allowedKeys == 'left') {
-        player.x -= player.speed;
+        this.x -= this.speed;
     }
     if (allowedKeys == 'up') {
-        player.y -= (player.speed - 20);
+        this.y -= (this.speed - 20);
     }
     if (allowedKeys == 'right') {
-        player.x += player.speed;
+        this.x += this.speed;
     }
     if (allowedKeys == 'down') {
-        player.y += (player.speed - 20);
+        this.y += (this.speed - 20);
     }
     console.log('allowedKeys is: ' + allowedKeys);
+};
+
+// To Check if the Player has reached the water area
+Player.prototype.hasWon = function() {
+	var won = false;
+	if(this.y == 0) {
+		console.log('You Won');
+		won = true;
+		this.x = 202.5;
+        this.y = 400;
+        this.level += 1;
+        this.score += ( 10 * (this.level-1));
+        console.log('level => '+ this.level + ' score => '+ this.score);
+	}
+
+	return won;
+};
+
+// To move the game to the next level
+var moveToNextLevel = function(level) {
+	// Empty the existing array of enemies to create a fresh one for each level
+	allEnemies.length = 0;
+
+	for(var i = 0; i < level; i++){
+		var enemy = new Enemy(0, yEnemyArr[Math.floor(Math.random() * 4)], Math.random() * 200);
+		allEnemies.push(enemy);
+	}
 };
 
 // Now instantiate your objects.
