@@ -154,6 +154,9 @@ var Engine = (function(global) {
         });
 
         player.render();
+        plusLife.render();
+
+        //scoreBoard.render();
     }
 
     /* This function does nothing but it could have been a good place to
