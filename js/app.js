@@ -44,9 +44,11 @@ Enemy.prototype.checkCollisions = function() {
         && player.x + 75 >= this.x + 10) {
         console.log('collision');
     	//upon collision update the position and score of the player
+    	currentCountDown = createCountDown((player.level + 1) * 10000);
         player.x = 202.5;
         player.y = 400;
         player.score -= (3 * player.level);
+        player.lives -= 1;
         console.log('level => '+ player.level + ' score => '+ player.score);
     }
 };
@@ -73,9 +75,15 @@ var Player = function(x,y,speed) {
 
     // score: Score attained by the player
     this.score = 0;
+
+    // lives: Number of lives player has
+    this.lives = 10;
 };
 
 Player.prototype.update = function() {
+	// To check if the timer is still on
+	this.checkTime();
+
 	// To keep the player within the canvas
 	if(this.x <= 0){
 		this.x = 0;
@@ -89,7 +97,7 @@ Player.prototype.update = function() {
 	if(this.y >= 400){
 		this.y = 400;
 	}
-	//console.log(player.x + "--" + player.y);
+	console.log(player.x + "--" + player.y);
 
 	// To move the game to next level if the player has won
 	if(this.hasWon()){
@@ -135,26 +143,74 @@ Player.prototype.hasWon = function() {
 	return won;
 };
 
+// To restart the level if time expired
+Player.prototype.checkTime = function() {
+	//console.log(currentCountDown());
+	if(currentCountDown() < 0){
+        console.log('Time over. Restart level.');
+        currentCountDown = createCountDown((this.level + 1) * 10000);
+        this.x = 202.5;
+        this.y = 400;
+	}
+};
+
+var LifeHeart = function () {
+	// To determine X position of the heart
+	this.x = xArr[Math.floor(Math.random() * 5)];
+	console.log(this.x);
+	// To determine Y position of the heart
+	this.y = yArr[Math.floor(Math.random() * 4)];
+	console.log(this.y);
+	// To create a random number based on which the heart will appear
+	this.produceHeart = Math.floor(Math.random() * 10);
+	console.log(this.produceHeart);
+	// The image/sprite for the heart
+    this.sprite = 'images/Heart.png';
+};
+
+LifeHeart.prototype.render = function() {
+	if(this.produceHeart % 3 == 0) {
+		player.lives += 1;
+		//ctx.drawImage(Resources.get(this.sprite), this.x, this.y);	
+	}
+    
+};
+
 // To move the game to the next level
 var moveToNextLevel = function(level) {
+	currentCountDown = createCountDown((level + 1) * 10000);
+
 	// Empty the existing array of enemies to create a fresh one for each level
 	allEnemies.length = 0;
 
 	for(var i = 0; i < level; i++){
-		var enemy = new Enemy(0, yEnemyArr[Math.floor(Math.random() * 4)], Math.random() * 200);
+		var enemy = new Enemy(0, yArr[Math.floor(Math.random() * 4)], Math.random() * 200);
 		allEnemies.push(enemy);
 	}
 };
 
-// Now instantiate your objects.
-// Place all enemy objects in an array called allEnemies
-// Place the player object in a variable called player
-var allEnemies = [];
-var player = new Player(202.5, 390, 100);
-var yEnemyArr = [65, 145, 225, 305];
-var enemy = new Enemy(0, yEnemyArr[Math.floor(Math.random() * 4)], Math.random() * 200);
+// To create a timer for game
+var createCountDown = function(timeRemaining) {
+	var startTime = Date.now();
+    return function() {
+       return timeRemaining - ( Date.now() - startTime );
+    }
+};
 
+// The player object
+var player = new Player(202.5, 390, 100);
+// Array to determine X position of objects
+var xArr = [2.5,102.5,202.5,302.5,402.5];
+// Array to determine Y position of objects
+var yArr = [65, 145, 225, 305];
+// Crete the array and objects for the game
+var allEnemies = [];
+var enemy = new Enemy(0, yArr[Math.floor(Math.random() * 4)], Math.random() * 200);
 allEnemies.push(enemy);
+// create countdown timer object to restrict timing
+var currentCountDown = createCountDown(20000); // 20 seconds countdown for level 1
+// To create a heart for gaining life;
+var plusLife = new LifeHeart();
 
 
 // This listens for key presses and sends the keys to your
