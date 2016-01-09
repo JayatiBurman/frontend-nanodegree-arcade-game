@@ -5,7 +5,7 @@ var Enemy = function(x, y, speed) {
     // Variables applied to each of our instances go here,
 
     // The image/sprite for our enemies
-    this.sprite = 'images/enemy-bug.PNG';
+    this.sprite = 'images/enemy-bug.png';
     // x: X position coordinate of the enemy
     this.x = x;
     // y: Y position coordinate of the enemy
@@ -53,7 +53,7 @@ Enemy.prototype.checkCollisions = function() {
 //------------------------------------------------------
 var Player = function(x,y,speed) {
 	// The image/sprite for our player
-    this.sprite = 'images/char-boy.PNG';
+    this.sprite = 'images/char-boy.png';
 
     // x: X position coordinate of the player
     this.x = x;
@@ -178,7 +178,7 @@ var LifeHeart = function () {
 	// To create the modulus
 	this.mod = 7;
 	// The image/sprite for the heart
-    this.sprite = 'images/heart.PNG';
+    this.sprite = 'images/heart.png';
 };
 
 //To control the number of lives created with increaisng levels
