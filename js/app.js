@@ -178,7 +178,7 @@ var LifeHeart = function () {
 	// To create the modulus
 	this.mod = 7;
 	// The image/sprite for the heart
-    this.sprite = 'images/heart.png';
+    this.sprite = 'images/Heart.png';
 };
 
 //To control the number of lives created with increaisng levels
